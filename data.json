@@ -1,0 +1,41 @@
+{
+    "member": "Inoue Nagi",
+    "sets": [
+        {
+            "id": "13TH-ANNV",
+            "name": "13th Anniversary",
+            "total": 5,
+            "releaseOrder": "2025-05-04",
+            "owned":{
+                "1":true,
+                "2":true,
+                "3":true,
+                "4":false,
+                "5":false
+            },
+            "images":{
+                "1":null,
+                "2":null,
+                "3":null,
+                "4":null,
+                "5":null
+            }
+        },
+        {
+            "id": "13TH-T",
+            "name": "13th Birthday Live",
+            "total": 3,
+            "releaseOrder": "2025-05-05",
+            "owned":{
+                "1":true,
+                "2":true,
+                "3":true
+            },
+            "images":{
+                "1":null,
+                "2":null,
+                "3":null
+            }
+        }
+    ]
+}

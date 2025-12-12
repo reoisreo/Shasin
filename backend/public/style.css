@@ -1,0 +1,169 @@
+body{
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background: #fafafa;
+    color: #333;
+}
+header{
+    background: #8641cc;
+    color: #fff;
+    padding: 20px 30px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+header h1{
+    margin: 0;
+    font-weight: 600;
+    font-size: 24px;
+}
+#set-container{
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+    gap: 20px;
+    padding: 25px;
+}
+/*----card----*/
+.set-card{
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.10);
+    transition: 0.2s;
+}
+.set-card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
+}
+.set-title{
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.set-id{
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/*Parts Box*/
+.parts-row{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.part-box{
+    width: 48px;
+    height: 60px;
+    background: #eee;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    position: relative;
+}
+.part-owned{
+    background: #c8ffe0;
+    color: #2a8f55;
+    border: 2px solid #2a8f55;
+}
+.part-missing{
+    background: #efefef;
+    color: #999;
+    border: 2px dashed #bbb;
+}
+
+.add-button{
+    background: #ffffff;
+    color: #8641cc;
+    font-weight: 600;
+    border: 2px solid #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+    margin-left: 20px;
+}
+.add-button:hover{
+    background: #fff;
+    color: #5c2c95;
+    border-color: #5c2c95;
+}
+
+.modal{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.hidden{display:none;}
+
+.modal-content{
+    background: #fff;
+    width: 360px;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.modal-content h2{
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+.modal-content label{
+    font-size: 14px;
+    margin-top: 10px;
+    display: block;
+}
+
+.modal-content input,
+.modal-content select{
+    width: 100%;
+    margin-top: 4px;
+    padding: 7px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.row{display: flex;gap: 10px;}
+
+.modal-buttons{
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.save-button{
+    background: #8641cc;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.save-button:hover{background: #6930a4;}
+
+.cancel-button{
+    background: #eee;
+    color: #333;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.cancel-button:hover{background: #ddd;}
