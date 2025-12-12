@@ -16,28 +16,14 @@
         <div class="modal-content">
             <h2>新しいセット</h2>
 
-            <label>セット名:</label>
-            <input type="text" id="modalSetName" placeholder="13th Anniversary">
+            <label>セット選択:</label>
+            <input list="setList" id="modalSetInput" placeholder="" autocomplete="off">
+            <datalist id="setList"></datalist>
 
-            <label>ID:</label>
-            <input type="text" id="modalSetID" placeholder="13TH-ANNV">
-
-            <label>枚数:</label>
-            <select id="modalTotal">
-                <option value="3">3枚</option>
-                <option value="4">4枚</option>
-                <option value="5">5枚</option>
-            </select>
-
-            <label>発売年月</label>
-            <div class="row">
-                <input type="number" id="modalYear" placeholder="YYYY">
-                <input type="number" id="modalMonth" placeholder="MM">
+            <div id="partsSection" class="hidden">
+                <label>生写真一覧</label>
+                <div id="modalPartsGrid" class="parts-grid"></div>
             </div>
-
-            <label>リリース順</label>
-            <input type="number" id="modalIndex" placeholder="ID">
-
             <div class="modal-buttons">
                 <button id="saveSetBtn" class="save-button">保存</button>
                 <button id="closeModalBtn" class="cancel-button">キャンセル</button>

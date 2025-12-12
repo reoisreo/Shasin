@@ -1,29 +1,104 @@
 const API_BASE = "http://localhost:3000";
-//Utility
-function getPartLabels(total){
-    if(total==3)return ["ヒキ","チュウ","ヨリ"];
-    if(total==4)return ["A","B","C","D"];
-    if(total==5)return ["ヒキ","チュウ","ヨリ","R","SR"];
-    return [];
-}
-//Load
-async function loadSets() {
-    const res=await fetch(`${API_BASE}/api/sets/1`);
+
+// Dropdown search
+const searchInput=document.getElementById("modalSetInput");
+const partContainer=document.getElementById("modalPartsRow");
+let SELECTED_SET=null;
+let CURRENT_PARTS=[];
+
+async function searchSets(query) {
+    const res=await fetch(`${API_BASE}/api/sets/search?q=${encodeURIComponent(query)}`);
     return await res.json();
 }
+
+searchInput.addEventListener("input", async()=>{
+    const q=searchInput.value.trim();
+    if(!q)return;
+
+    const results=await searchSets(q);
+
+    if(results.length===1){
+        SELECTED_SET=results[0];
+        await loadParts(results[0].setId);
+    }
+});
+
+// Part loading
 async function loadParts(setId) {
-    const res=await fetch(`${API_BASE}/api/parts/${setId}`);
-    return await res.json();
+    const res=await fetch(`${API_BASE}/api/setParts/${setId}`);
+    CURRENT_PARTS=await res.json();
+    renderParts();
 }
-//Update
-async function updatePart(partId, owned) {
-    await fetch(`${API_BASE}/api/updatePart`,{
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ partId, owned})
+
+// Part rendering
+function renderParts(){
+    partContainer.innerHTML="";
+    CURRENT_PARTS.forEach(part=>{
+        const wrap=document.createElement("div");
+        wrap.className="part-item";
+
+        const imgHolder=document.createElement("div");
+        imgHolder.className="part-image";
+        imgHolder.textContent="Image";
+        wrap.appendChild(imgHolder);
+
+        const name=document.createElement("div");
+        name.className="part-name";
+        name.textContent=part.partName;
+        wrap.appendChild(name);
+
+        const counter=document.createElement("div");
+        counter.className="part-counter";
+
+        const minusBtn=document.createElement("button");
+        minusBtn.textContent="-";
+
+        const num=document.createElement("span");
+        num.textContent=part.partTotal;
+        num.className="part-total";
+
+        const plusBtn=document.createElement("button");
+        plusBtn.textContent="+";
+
+        minusBtn.addEventListener("click", async()=>{
+            const newVal=Math.max(0,part.partTotal-1);
+            await updatePart(part.id,newVal);
+            part.partTotal=newVal;
+            num.textContent=newVal;
+        });
+        
+        plusBtn.addEventListener("click", async()=>{
+            const newVal=part.partTotal+1;
+            await updatePart(part.id,newVal);
+            part.partTotal=newVal;
+            num.textContent=newVal;
+        });
+        counter.appendChild(minusBtn);
+        counter.appendChild(num);
+        counter.appendChild(plusBtn);
+
+        wrap.appendChild(counter);
+
+        partContainer.appendChild(wrap);
     });
 }
-async function renderSetCard(set){
+
+// Part updating
+async function updatePart(partId, total){
+    await fetch(`${API_BASE}/api/setParts/update`,{
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({partId, partTotal:total})
+    });
+}
+
+// List loading
+async function loadAllSets() {
+    const res=await fetch(`${API_BASE}/api/sets`);
+    return await res.json();
+}
+
+async function renderSetCard(set) {
     const container=document.createElement("div");
     container.className="set-card";
 
@@ -33,82 +108,45 @@ async function renderSetCard(set){
 
     const id=document.createElement("div");
     id.className="set-id";
-    id.textContent= `${set.setId} - ${set.releaseCode}`;
+    id.textContent= `${set.setId} - ${set.releaseOrder}`;
 
-    const partsRow=document.createElement("div");
-    partsRow.className="parts-row";
+    const row=document.createElement("div");
+    row.className="parts-row";
 
-    const labels=getPartLabels(set.total);
+    const parts=await fetch(`${API_BASE}/api/setParts/${set.setId}`).then(r=>r.json());
 
-    const parts=await loadParts(set.setId);
-
-    for(let i=0;i<parts.length;i++){
-        const p=parts[i];
-
+    parts.forEach(p=>{
         const box=document.createElement("div");
-        box.className="part-box "+(p.owned? "part-owned":"part-missing");
-        box.textContent=labels[i];
+        box.className="part-box";
+        box.textContent=`${p.partName}(${p.partTotal})`;
+        row.appendChild(box);
+    });
 
-        box.addEventListener("click",async()=>{
-            const newOwned=p.owned? 0:1;
-            await updatePart(p.id,newOwned);
-            p.owned=newOwned;
-            box.className="part-box "+(newOwned?"part-owned":"part-missing");
-        });
-        partsRow.appendChild(box);
-    }
     container.appendChild(title);
     container.appendChild(id);
-    container.appendChild(partsRow);
+    container.appendChild(row);
 
     return container;
 }
 
-async function init(params) {
-    const sets=await loadSets();
-
+async function init(){
+    const sets=await loadAllSets();
     const container=document.getElementById("set-container");
     container.innerHTML="";
-
     for(const set of sets){
         const card=await renderSetCard(set);
         container.appendChild(card);
     }
 }
-
 init();
 
-//Modal
+// Modal
 const modal=document.getElementById("modal");
-const openModalBtn=document.getElementById("openModalBtn");
-const closeModalBtn=document.getElementById("closeModalBtn");
-const saveSetBtn=document.getElementById("saveSetBtn");
+document.getElementById("openModalBtn").onclick=()=>modal.classList.remove("hidden");
+document.getElementById("closeModalBtn").onclick=()=>modal.classList.add("hidden");
 
-openModalBtn.addEventListener("click",()=>{modal.classList.remove("hidden");});
-closeModalBtn.addEventListener("click", ()=>{modal.classList.add("hidden");});
-
-//New Set
-saveSetBtn.addEventListener("click", async()=>{
-    const setName=document.getElementById("modalSetName").value;
-    const setId=document.getElementById("modalSetID").value;
-    const total=parseInt(document.getElementById("modalTotal").value);
-    const year=document.getElementById("modalYear").value;
-    const month=document.getElementById("modalMonth").value;
-    const index=document.getElementById("modalIndex").value;
-
-    const releaseCode=`${year}-${String(month).padStart(2,'0')}-${index}`;
-
-    const res=await fetch(`${API_BASE}/api/addSet`,{
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-            memberId: 1,
-            setId: setId,
-            setName: setName,
-            total: total,
-            releaseCode: releaseCode
-        })
-    });
+// Save button
+document.getElementById("saveSetBtn").addEventListener("click",()=>{
     modal.classList.add("hidden");
     init();
 })

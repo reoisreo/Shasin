@@ -1,23 +1,36 @@
-CREATE TABLE IF NOT EXISTS members(
+DROP TABLE IF EXISTS parts;
+DROP TABLE IF EXISTS member_sets;
+DROP TABLE IF EXISTS sets;  
+DROP TABLE IF EXISTS members;
+
+CREATE TABLE members(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     groupName TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS sets(
+CREATE TABLE sets(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    memberId INTEGER NOT NULL,
-    setId TEXT NOT NULL,
+    setId TEXT UNIQUE NOT NULL,
     setName TEXT NOT NULL,
-    total INTEGER NOT NULL,
-    releaseCode TEXT NOT NULL,
-    FOREIGN KEY (memberId) REFERENCES members(id)
+    setTotal INTEGER NOT NULL,
+    releaseOrder INTEGER NOT NULL,
+    description TEXT
 );
 
-CREATE TABLE IF NOT EXISTS parts(
+CREATE TABLE member_sets(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    memberId INTEGER NOT NULL,
     setId INTEGER NOT NULL,
+    FOREIGN KEY(memberId) REFERENCES members(id),
+    FOREIGN KEY(setId) REFERENCES sets(id),
+    UNIQUE(memberId, setId)
+);
+
+CREATE TABLE parts(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    memberSetId INTEGER NOT NULL,
     partNumber INTEGER NOT NULL,
     owned INTEGER NOT NULL DEFAULT 0,
-    FOREIGN KEY (setId) REFERENCES sets(id)
+    FOREIGN KEY(memberSetId) REFERENCES member_sets(id)
 );

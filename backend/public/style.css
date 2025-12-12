@@ -46,6 +46,76 @@ header h1{
 }
 
 /*Parts Box*/
+#partsSection{
+    margin-top: 15px;
+}
+.parts-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(110px,1fr));
+    gap: 14px;
+    margin-top: 10px;
+}
+.part-card{
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rbga(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.15s;
+}
+.part-card:hover{
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+.part-image{
+    width: 100%;
+    height: 90px;
+    background: #f2f2f2;
+    border-radius: 10px;
+    border: 1px dashed #bbb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+.part-number{
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+}
+.part-counter{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.counter-btn{
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: #e0d4f2;
+    color: #5c2ca8;
+    font-size: 18px;
+    line-height: 0;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.counter-btn:hover{
+    background: #d4c2f0;
+}
+.part-counter span{
+    min-width: 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
 .parts-row{
     display: flex;
     gap: 8px;
@@ -107,10 +177,10 @@ header h1{
 
 .modal-content{
     background: #fff;
-    width: 360px;
-    padding: 20px 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    width: 420px;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
 }
 
 .modal-content h2{
@@ -121,11 +191,16 @@ header h1{
 
 .modal-content label{
     font-size: 14px;
-    margin-top: 10px;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    font-weight: 500;
     display: block;
 }
 
-.modal-content input,
+.modal-content input{
+    padding: 9px 12px;
+    font-size: 15px;
+}
 .modal-content select{
     width: 100%;
     margin-top: 4px;
