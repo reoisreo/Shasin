@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS parts;
 DROP TABLE IF EXISTS member_sets;
 DROP TABLE IF EXISTS sets;  
 DROP TABLE IF EXISTS members;
+DROP TABLE IF EXISTS member_set_parts;
 
 CREATE TABLE members(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,10 +28,23 @@ CREATE TABLE member_sets(
     UNIQUE(memberId, setId)
 );
 
-CREATE TABLE parts(
+CREATE TABLE member_set_parts(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     memberSetId INTEGER NOT NULL,
+    partId INTEGER NOT NULL,
+    partCount INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY(memberSetId) REFERENCES member_sets(id),
+    FOREIGN KEY(partId) REFERENCES parts(id),
+    UNIQUE(memberSetId, partId)
+    CHECK (partCount>=0)
+);
+
+CREATE TABLE parts(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    setId INTEGER NOT NULL,
     partNumber INTEGER NOT NULL,
-    owned INTEGER NOT NULL DEFAULT 0,
-    FOREIGN KEY(memberSetId) REFERENCES member_sets(id)
+    partName TEXT NOT NULL,
+    imagePath TEXT DEFAULT NULL,
+    FOREIGN KEY(setId) REFERENCES sets(id),
+    UNIQUE(setId, partNumber)
 );

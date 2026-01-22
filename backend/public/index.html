@@ -11,9 +11,10 @@
         <button id="openModalBtn" class="add-button">セット追加</button>
     </header>
     <main id="set-container"></main>
-    <!--Modal-->
+    <!--Add Set Modal-->
     <div id="modal" class="modal hidden">
         <div class="modal-content">
+            <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close">×</button>
             <h2>新しいセット</h2>
 
             <label>セット選択:</label>
@@ -27,6 +28,26 @@
             <div class="modal-buttons">
                 <button id="saveSetBtn" class="save-button">保存</button>
                 <button id="closeModalBtn" class="cancel-button">キャンセル</button>
+            </div>
+        </div>
+    </div>
+    <!--View/Edit Set Modal-->
+    <div id="viewModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header-row">
+                <button class="modal-close-btn" id="viewModalCloseBtn" aria-label="Close">×</button>
+                <button class="modal-menu-btn" id="viewModalMenuBtn" aria-label="Edit" title="Edit">⋮</button>
+            </div>
+            <div id="viewSetTitle" class="set-title-badge modal-set-title"></div>
+            <div id="viewSetCode" class="set-code modal-set-code"></div>
+
+            <div id="viewPartsSection">
+                <label>生写真一覧</label>
+                <div id="viewPartsGrid" class="modal-parts-grid"></div>
+            </div>
+            <div class="modal-buttons hidden" id="editModalButtons">
+                <button id="saveEditBtn" class="save-button">保存</button>
+                <button id="closeEditBtn" class="cancel-button">キャンセル</button>
             </div>
         </div>
     </div>
