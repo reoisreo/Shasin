@@ -510,7 +510,13 @@
     <span class="header-title">生写真コレクション</span>
     <span class="header-sub">井上和</span>
   </div>
-  <div class="header-stats" id="header-stats"></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="header-stats" id="header-stats"></div>
+    <div id="sync-status" onclick="openSettingsModal()" title="同期設定" style="cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);padding:4px 8px;border-radius:var(--radius);transition:background 0.15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+      <span id="sync-icon">⚙</span>
+      <span id="sync-label">設定</span>
+    </div>
+  </div>
 </div>
 
 <div class="toolbar">
@@ -608,6 +614,31 @@
     <h2 id="dialog-title" style="font-size:15px;font-weight:600;margin-bottom:10px;"></h2>
     <p id="dialog-message"></p>
     <div class="dialog-actions" id="dialog-actions"></div>
+  </div>
+</div>
+
+<!-- Settings / Sync Modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal" style="max-width:480px;">
+    <h2>同期設定</h2>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">
+      GitHub Gistを使ってPCとスマホのデータを同期します。<br>
+      トークンとGist IDを入力してください。
+    </div>
+    <div class="form-group">
+      <label class="form-label">GitHub Personal Access Token</label>
+      <input type="password" class="form-input" id="settings-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Gist ID</label>
+      <input type="text" class="form-input" id="settings-gist-id" placeholder="abc123def456..." autocomplete="off">
+    </div>
+    <div id="settings-status" style="font-size:12px;min-height:18px;margin-bottom:4px;"></div>
+    <div class="modal-actions" style="flex-wrap:wrap;gap:8px;">
+      <button class="btn-sm" onclick="testGistConnection()" style="margin-right:auto;">接続テスト</button>
+      <button class="btn-cancel" onclick="closeSettingsModal()">キャンセル</button>
+      <button class="btn-confirm" onclick="saveSettings()">保存</button>
+    </div>
   </div>
 </div>
 
@@ -957,6 +988,131 @@ function closeDialog() {
   document.getElementById('dialog-modal').classList.remove('open');
 }
 document.getElementById('dialog-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDialog(); });
+// Settings modal
+function openSettingsModal() {
+  document.getElementById('settings-token').value = localStorage.getItem('gh_token') || '';
+  document.getElementById('settings-gist-id').value = localStorage.getItem('gist_id') || '';
+  document.getElementById('settings-status').textContent = '';
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettingsModal() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+document.getElementById('settings-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSettingsModal(); });
+
+function saveSettings() {
+  const token = document.getElementById('settings-token').value.trim();
+  const gistId = document.getElementById('settings-gist-id').value.trim();
+  if (!token || !gistId) {
+    setSettingsStatus('トークンとGist IDを入力してください', 'error'); return;
+  }
+  localStorage.setItem('gh_token', token);
+  localStorage.setItem('gist_id', gistId);
+  closeSettingsModal();
+  setSyncLabel('syncing');
+  syncFromGist().then(() => render());
+}
+
+async function testGistConnection() {
+  const token = document.getElementById('settings-token').value.trim();
+  const gistId = document.getElementById('settings-gist-id').value.trim();
+  if (!token || !gistId) { setSettingsStatus('トークンとGist IDを入力してください', 'error'); return; }
+  setSettingsStatus('接続中…', 'info');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    setSettingsStatus('✓ 接続成功', 'success');
+  } catch(e) {
+    setSettingsStatus(`✗ 失敗: ${e.message}`, 'error');
+  }
+}
+
+function setSettingsStatus(msg, type) {
+  const el = document.getElementById('settings-status');
+  el.textContent = msg;
+  el.style.color = type === 'error' ? 'var(--red)' : type === 'success' ? 'var(--green)' : 'var(--text2)';
+}
+
+// Sync status indicator
+function setSyncLabel(state, detail) {
+  const icon = document.getElementById('sync-icon');
+  const label = document.getElementById('sync-label');
+  const wrap = document.getElementById('sync-status');
+  if (state === 'syncing') {
+    icon.textContent = '↻'; label.textContent = '同期中…';
+    wrap.style.color = 'var(--text2)';
+  } else if (state === 'ok') {
+    icon.textContent = '✓'; label.textContent = detail || '同期済';
+    wrap.style.color = 'var(--green)';
+  } else if (state === 'error') {
+    icon.textContent = '✗'; label.textContent = detail || 'エラー';
+    wrap.style.color = 'var(--red)';
+  } else {
+    icon.textContent = '⚙'; label.textContent = '設定';
+    wrap.style.color = 'var(--text3)';
+  }
+}
+
+// Gist API
+function getGistConfig() {
+  return {
+    token: localStorage.getItem('gh_token'),
+    gistId: localStorage.getItem('gist_id')
+  };
+}
+
+async function syncFromGist() {
+  const { token, gistId } = getGistConfig();
+  if (!token || !gistId) return;
+  setSyncLabel('syncing');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const file = data.files['shashins-collection.json'];
+    if (!file) throw new Error('ファイルが見つかりません');
+    const remote = JSON.parse(file.content || '{}');
+    collection = remote;
+    saveAllToIDB();
+    const now = new Date();
+    setSyncLabel('ok', `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 同期済`);
+  } catch(e) {
+    setSyncLabel('error', 'Gist読み込み失敗');
+    console.error('Gist sync error:', e);
+  }
+}
+
+async function pushToGist() {
+  const { token, gistId } = getGistConfig();
+  if (!token || !gistId) return;
+  setSyncLabel('syncing');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: { 'shashins-collection.json': { content: JSON.stringify(collection) } }
+      })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const now = new Date();
+    setSyncLabel('ok', `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 同期済`);
+  } catch(e) {
+    setSyncLabel('error', 'Gist書き込み失敗');
+    console.error('Gist push error:', e);
+  }
+}
+
+// IndexedDB (local cache for offline)
+let db;
 function openDB() {
   return new Promise((res, rej) => {
     const req = indexedDB.open('shashins_db', 1);
@@ -968,11 +1124,10 @@ function openDB() {
     req.onerror = () => rej(req.error);
   });
 }
-function loadCollection() {
+function loadFromIDB() {
   return new Promise(res => {
     const tx = db.transaction('collection','readonly');
-    const store = tx.objectStore('collection');
-    const req = store.getAll();
+    const req = tx.objectStore('collection').getAll();
     req.onsuccess = () => {
       collection = {};
       req.result.forEach(r => collection[r.setId] = r);
@@ -980,13 +1135,21 @@ function loadCollection() {
     };
   });
 }
+function saveAllToIDB() {
+  const tx = db.transaction('collection','readwrite');
+  const store = tx.objectStore('collection');
+  store.clear();
+  Object.values(collection).forEach(e => store.put(e));
+}
 function saveEntry(entry) {
   const tx = db.transaction('collection','readwrite');
   tx.objectStore('collection').put(entry);
+  pushToGist();
 }
 function deleteEntry(setId) {
   const tx = db.transaction('collection','readwrite');
   tx.objectStore('collection').delete(setId);
+  pushToGist();
 }
 
 // Collection helpers
@@ -1410,11 +1573,19 @@ function confirmAdd() {
 }
 
 // Init
-openDB().then(() => loadCollection()).then(() => render());
+openDB().then(() => loadFromIDB()).then(() => {
+  render();
+  const { token, gistId } = getGistConfig();
+  if (token && gistId) {
+    syncFromGist().then(() => render());
+  } else {
+    setSyncLabel('idle');
+  }
+});
 
 // Keyboard shortcut
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeAddModal(); closeEditModal(); closeDialog(); }
+  if (e.key === 'Escape') { closeAddModal(); closeEditModal(); closeDialog(); closeSettingsModal(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openAddModal(); }
 });
 if ('serviceWorker' in navigator) {
