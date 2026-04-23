@@ -1,0 +1,20 @@
+{
+  "name": "生写真コレクション",
+  "short_name": "生写真",
+  "start_url": "./shashins.html",
+  "display": "standalone",
+  "background_color": "#0e0e10",
+  "theme_color": "#18181b",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
