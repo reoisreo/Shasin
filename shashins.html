@@ -466,8 +466,55 @@
   ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
   /* Group view option */
-  .view-toggle { display: flex; gap: 4px; }
-  .view-btn { padding: 6px 10px; font-size: 12px; }
+  .view-toggle {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .view-btn {
+    padding: 6px 10px;
+    font-size: 14px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .view-btn:hover { color: var(--text); background: var(--surface3); }
+  .view-btn.active { background: var(--surface3); color: var(--text); }
+  .sets-grid.compact {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 4px;
+  }
+  .set-card.compact-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+  }
+  .set-card.compact-card .card-name {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    padding-right: 10px;
+  }
+  .compact-count {
+    font-size: 12px;
+    color: var(--text3);
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .compact-count.full { color: var(--green); }
   .no-sets { padding: 40px 0; text-align: center; color: var(--text3); font-size: 13px; }
   @media (max-width: 600px) {
     .header {
@@ -541,6 +588,10 @@
     <button class="btn" data-status-filter="complete" onclick="setStatusFilter('complete')">コンプ</button>
     <button class="btn" data-status-filter="partial" onclick="setStatusFilter('partial')">未コンプ</button>
     <button class="btn" data-status-filter="none" onclick="setStatusFilter('none')">ない</button>
+  </div>
+  <div class="view-toggle">
+    <button class="view-btn active" id="view-btn-normal" onclick="setView('normal')" title="通常">⊞</button>
+    <button class="view-btn" id="view-btn-compact" onclick="setView('compact')" title="コンパクト">≡</button>
   </div>
   <button class="btn-add" onclick="openAddModal()">セット追加</button>
 </div>
@@ -956,6 +1007,14 @@ const MASTER_SETS = [
 // State
 let collection = {};
 let typeFilter = 'all';
+let viewMode = 'normal';
+
+function setView(mode) {
+  viewMode = mode;
+  document.getElementById('view-btn-normal').classList.toggle('active', mode === 'normal');
+  document.getElementById('view-btn-compact').classList.toggle('active', mode === 'compact');
+  render();
+}
 let statusFilter = 'all';
 let tagFilters = new Set();
 let searchQ = '';
@@ -1201,11 +1260,11 @@ function render() {
   } else {
     if (inCollection.length > 0) {
       html += `<div class="section-header"><span class="section-title">In Collection</span><span class="section-count">${inCollection.length} set${inCollection.length!==1?'s':''}</span></div>`;
-      html += '<div class="sets-grid">' + inCollection.map(s => renderCard(s, true)).join('') + '</div>';
+      html += `<div class="sets-grid ${viewMode === 'compact' ? 'compact' : ''}">` + inCollection.map(s => renderCard(s, true)).join('') + '</div>';
     }
     if (showAll && notInCollection.length > 0) {
       html += `<div class="section-header" style="margin-top:24px;"><span class="section-title">Not owned</span><span class="section-count">${notInCollection.length} set${notInCollection.length!==1?'s':''}</span></div>`;
-      html += '<div class="sets-grid">' + notInCollection.map(s => renderCard(s, false)).join('') + '</div>';
+      html += `<div class="sets-grid ${viewMode === 'compact' ? 'compact' : ''}">` + notInCollection.map(s => renderCard(s, false)).join('') + '</div>';
     }
     if (inCollection.length === 0 && !showAll) {
       html = '<div class="empty"><div style="font-size:32px;margin-bottom:8px;">📸</div><p>No sets in your collection yet.<br>Click "+ Add Set" to get started.</p></div>';
@@ -1221,8 +1280,16 @@ function renderCard(s, inColl) {
   const owned = ownedCount(entry, s.type);
   const total = parts.length;
   const isComplete = owned === total && inColl;
-  const pct = total > 0 ? Math.round((owned / total) * 100) : 0;
+  const clickHandler = inColl ? `onclick="openEditModal('${s.id}')"` : `onclick="openAddModalForSet('${s.id}')"`;
 
+  if (viewMode === 'compact') {
+    return `<div class="set-card compact-card ${isComplete ? 'complete' : ''}" ${clickHandler}>
+      <span class="card-name">${s.name}</span>
+      <span class="compact-count ${isComplete ? 'full' : ''}">${owned}/${total}</span>
+    </div>`;
+  }
+
+  const pct = total > 0 ? Math.round((owned / total) * 100) : 0;
   const partsHtml = parts.map(p => {
     const isOwned = entry && entry.parts && entry.parts[p];
     return `<span class="part-btn ${isOwned ? 'owned' : ''}">${p}</span>`;
@@ -1239,8 +1306,6 @@ function renderCard(s, inColl) {
     });
     tagsHtml = '<div class="card-tags">' + sortedTags.map(t => `<span class="tag-chip" style="${tagStyle(t)}">${t}</span>`).join('') + '</div>';
   }
-
-  const clickHandler = inColl ? `onclick="openEditModal('${s.id}')"` : `onclick="openAddModalForSet('${s.id}')"`;
 
   return `<div class="set-card ${isComplete ? 'complete' : ''}" ${clickHandler}>
     <div class="card-top">
