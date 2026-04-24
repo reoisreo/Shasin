@@ -1141,15 +1141,21 @@ function saveAllToIDB() {
   store.clear();
   Object.values(collection).forEach(e => store.put(e));
 }
+let pushTimer = null;
+function schedulePush() {
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => pushToGist(), 2000);
+}
+
 function saveEntry(entry) {
   const tx = db.transaction('collection','readwrite');
   tx.objectStore('collection').put(entry);
-  pushToGist();
+  schedulePush();
 }
 function deleteEntry(setId) {
   const tx = db.transaction('collection','readwrite');
   tx.objectStore('collection').delete(setId);
-  pushToGist();
+  schedulePush();
 }
 
 // Collection helpers
